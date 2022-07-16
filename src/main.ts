@@ -1,0 +1,14 @@
+import { createApp } from 'vue'
+import App from './App.vue'
+import router from './router'
+import Antd from "ant-design-vue"
+import './assets/main.css'
+import "ant-design-vue/dist/antd.css"
+import MyComSpin from "./components/MyComSpin.vue"
+import request from "./utils/request"
+const app = createApp(App)
+app.component('spin', MyComSpin)
+app.config.globalProperties.$request=request
+app.use(router)
+app.use(Antd)
+app.mount('#app')
