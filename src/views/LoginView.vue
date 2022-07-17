@@ -1,30 +1,35 @@
 <template>
-    <a-form class="Container" :model="formState" name="basic" :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }"
-        autocomplete="off" @finish="onFinish" @finishFailed="onFinishFailed">
-        <a-form-item label="用户名" name="username" :rules="[{ required: true, message: 'Please input your username!' }]">
-            <a-input v-model:value="formState.username" @keydown.enter="onFinish">
-                <template #prefix>
-                    <UserOutlined class="site-form-item-icon" />
-                </template>
-            </a-input>
-        </a-form-item>
+    <div class="container">
 
-        <a-form-item label="密码" name="password" :rules="[{ required: true, message: 'Please input your password!' }]">
-            <a-input-password v-model:value="formState.password" @keydown.enter="onFinish">
-                <template #prefix>
-                    <LockOutlined class="site-form-item-icon" />
-                </template>
-            </a-input-password>
-        </a-form-item>
-        <a-form-item :wrapper-col="{ offset: 8, span: 16 }">
-            <a-button type="primary" html-type="submit">登 录</a-button>
-        </a-form-item>
-    </a-form>
-    <spin />
+        <a-form class="container_form" :model="formState" name="basic" :label-col="{ span: 4 }"
+            :wrapper-col="{ span: 16 }" autocomplete="off" @finish="onFinish" @finishFailed="onFinishFailed">
+            <a-form-item label="用户名" name="username" :rules="[{ required: true, message: '请输入用户名!' }]">
+                <a-input v-model:value="formState.username" @keydown.enter="onFinish">
+                    <template #prefix>
+                        <UserOutlined class="site-form-item-icon" />
+                    </template>
+                </a-input>
+            </a-form-item>
+
+            <a-form-item label="密码" name="password" :rules="[{ required: true, message: '请输入密码!' }]">
+                <a-input-password v-model:value="formState.password" @keydown.enter="onFinish">
+                    <template #prefix>
+                        <LockOutlined class="site-form-item-icon" />
+                    </template>
+                </a-input-password>
+            </a-form-item>
+            <a-form-item :wrapper-col="{ offset: 8, span: 16 }">
+                <a-button type="primary" html-type="submit">登 录</a-button>
+            </a-form-item>
+        </a-form>
+        <a-spin class="mark" v-if="loading" />
+    </div>
+
 </template>
 <script lang="ts">
-import { defineComponent, reactive, getCurrentInstance } from 'vue';
+import { ref, defineComponent, reactive, getCurrentInstance } from 'vue';
 import { UserOutlined, LockOutlined } from '@ant-design/icons-vue';
+import { useRouter } from "vue-router"
 interface FormState {
     username: string;
     password: string;
@@ -36,6 +41,8 @@ export default defineComponent({
         LockOutlined,
     },
     setup() {
+        const router = useRouter()
+        const loading = ref(false)
         const { proxy }: any = getCurrentInstance()
         const r = proxy.$request
         const formState = reactive<FormState>({
@@ -43,17 +50,28 @@ export default defineComponent({
             password: '',
             remember: true,
         });
-        const onFinish = (values: an
-        y) => {
+        const onFinish = (values: any) => {
+            loading.value = true
             r({
-                url: '/test/login',
+                url: '/api/user/login',
                 method: "post",
-                data: values
+                params: values
             }).then((response: any) => {
-                console.log(response);
+                if (response.code == 200) {
+                    router.push({ path: '/home' })
+                    loading.value = false;
+                } else {
+                    setTimeout(() => {
+                        loading.value = false;
+                    }, 800)
+
+                }
+
+            }).catch((error: any) => {
+                console.log(error);
+                loading.value = false;
 
             })
-            console.log('Success:', values);
         };
 
         const onFinishFailed = (errorInfo: any) => {
@@ -61,6 +79,7 @@ export default defineComponent({
         };
 
         return {
+            loading,
             formState,
             onFinish,
             onFinishFailed,
@@ -69,12 +88,34 @@ export default defineComponent({
 });
 </script>
 <style scoped>
-.Container {
+.container {
+    width: 100vw;
+    height: calc(100vh - 0px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.container_form {
+    width: 500px;
+    height: 250px;
+    background: #f4f4f4;
+    box-sizing: border-box;
+    padding: 30px;
+    border: solid 1px #f2f2f2;
+}
+
+.mark {
+    width: 100%;
+    height: 100%;
     position: absolute;
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
     margin: auto;
-    width: 500px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, .5);
 }
 </style>
